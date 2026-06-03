@@ -59,7 +59,7 @@ public class BaseDeDonnees {
     return source;
   }
 
-  /** Crée les tables (schema.sql) puis insère les données du fil rouge (seed.sql). Fourni. */
+  /** Crée les tables (schema.sql) puis insère les données du fil rouge (seed.sql). Fourni. AH*/
   public static void initialiser(DataSource source) {
     executerScript(source, "/db/schema.sql");
     executerScript(source, "/db/seed.sql");
