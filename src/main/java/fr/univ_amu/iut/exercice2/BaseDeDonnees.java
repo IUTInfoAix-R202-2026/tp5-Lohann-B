@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
 
+import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteDataSource;
+
 /**
  * Exercice 2 : fournir une {@link DataSource} SQLite et initialiser le schéma.
  *
@@ -54,6 +57,15 @@ public class BaseDeDonnees {
     // 2. SQLiteDataSource sqlite = new SQLiteDataSource(config);
     // sqlite.setUrl("jdbc:sqlite:" + chemin);
     // 3. source = sqlite;
+
+    SQLiteConfig config = new SQLiteConfig();
+
+    config.enforceForeignKeys(true); // Check pointeur nul
+
+    SQLiteDataSource sqlite = new SQLiteDataSource(config);
+    sqlite.setUrl("jdbc:sqlite:" + chemin);
+
+    source = sqlite;
 
     return source;
   }
