@@ -10,37 +10,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Exercice 1 : premier contact avec JDBC. Le jalon de cet exercice est simple
- * mais essentiel :
+ * Exercice 1 : premier contact avec JDBC. Le jalon de cet exercice est simple mais essentiel :
  * <b>se connecter à une base et lire une table</b>.
  *
- * <p>
- * On travaille sur une base SQLite <b>en mémoire</b>
- * ({@code jdbc:sqlite::memory:}) : aucune
- * installation, aucun fichier, la base vit le temps de la connexion. On y crée
- * une unique table
- * {@code taxon} (les espèces de chauves-souris du fil rouge VigieChiro), puis
- * on la relit.
+ * <p>On travaille sur une base SQLite <b>en mémoire</b> ({@code jdbc:sqlite::memory:}) : aucune
+ * installation, aucun fichier, la base vit le temps de la connexion. On y crée une unique table
+ * {@code taxon} (les espèces de chauves-souris du fil rouge VigieChiro), puis on la relit.
  *
- * <p>
- * Tout accès JDBC suit les mêmes 5 étapes (les étapes 1 et 2 sont automatiques
- * depuis JDBC 4.0)
+ * <p>Tout accès JDBC suit les mêmes 5 étapes (les étapes 1 et 2 sont automatiques depuis JDBC 4.0)
  * :
  *
  * <ol>
- * <li>charger le pilote (automatique) ;
- * <li>ouvrir une {@link Connection} ;
- * <li>créer une instruction ({@link Statement}) ;
- * <li>exécuter et parcourir le {@link ResultSet} ;
- * <li>libérer les ressources (le try-with-resources s'en charge).
+ *   <li>charger le pilote (automatique) ;
+ *   <li>ouvrir une {@link Connection} ;
+ *   <li>créer une instruction ({@link Statement}) ;
+ *   <li>exécuter et parcourir le {@link ResultSet} ;
+ *   <li>libérer les ressources (le try-with-resources s'en charge).
  * </ol>
  */
 public class ExempleJDBC {
 
-  /**
-   * URL JDBC d'une base SQLite en mémoire (jetable, parfaite pour débuter et pour
-   * les tests).
-   */
+  /** URL JDBC d'une base SQLite en mémoire (jetable, parfaite pour débuter et pour les tests). */
   public static final String URL_MEMOIRE = "jdbc:sqlite::memory:";
 
   public static void main(String[] args) throws SQLException {
@@ -57,8 +47,7 @@ public class ExempleJDBC {
   }
 
   /**
-   * Prépare la base : crée la table {@code taxon} et y insère les espèces du fil
-   * rouge. Fourni : ce
+   * Prépare la base : crée la table {@code taxon} et y insère les espèces du fil rouge. Fourni : ce
    * n'est pas l'objet de l'exercice (on s'en servira autrement dès l'exercice 2).
    */
   static void creerEtRemplirTable(Connection connexion) throws SQLException {
@@ -74,9 +63,7 @@ public class ExempleJDBC {
   /**
    * Lit tous les taxons et renvoie, pour chacun, une ligne {@code "code - nom"}.
    *
-   * <p>
-   * C'est le cœur de l'exercice : exécuter un {@code SELECT} et parcourir le
-   * {@link ResultSet}.
+   * <p>C'est le cœur de l'exercice : exécuter un {@code SELECT} et parcourir le {@link ResultSet}.
    */
   static List<String> lireTaxons(Connection connexion) throws SQLException {
     List<String> lignes = new ArrayList<>();
@@ -90,7 +77,8 @@ public class ExempleJDBC {
     // 3. Parcourir le ResultSet avec while (rs.next()) et, pour chaque ligne,
     // ajouter à `lignes`
     // la chaîne : rs.getString("code") + " - " + rs.getString("nom_vernaculaire").
-    try (PreparedStatement ps = connexion.prepareStatement("SELECT code, nom_vernaculaire FROM taxon")) {
+    try (PreparedStatement ps =
+        connexion.prepareStatement("SELECT code, nom_vernaculaire FROM taxon")) {
 
       ResultSet rs = ps.executeQuery();
 
@@ -98,6 +86,7 @@ public class ExempleJDBC {
         lignes.add(rs.getString("code") + " - " + rs.getString("nom_vernaculaire"));
       }
 
-    return lignes;
+      return lignes;
+    }
   }
 }
