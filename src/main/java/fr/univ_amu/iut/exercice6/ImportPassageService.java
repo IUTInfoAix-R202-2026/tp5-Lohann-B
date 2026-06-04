@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import javax.sql.DataSource;
 
@@ -44,6 +45,7 @@ public class ImportPassageService {
         "INSERT INTO passage"
             + " (numero_carre, code_point, numero_passage, annee, statut_workflow)"
             + " VALUES (?, ?, ?, ?, 'Importé')";
+
     String sqlObservation =
         "INSERT INTO observation"
             + " (passage_id, temps_debut, temps_fin, frequence_mediane, code_taxon, probabilite)"
@@ -51,19 +53,67 @@ public class ImportPassageService {
 
     long passageId = -1;
 
-    // TODO exercice 6 : réaliser l'import dans une transaction et renseigner `passageId`.
+    // TODO exercice 6 : réaliser l'import dans une transaction et renseigner
+    // `passageId`.
     //
     // 1. Ouvrir une connexion, puis connexion.setAutoCommit(false).
     // 2. Dans un try :
-    //    - insérer le passage (prepareStatement(sqlPassage, Statement.RETURN_GENERATED_KEYS),
-    //      positionner les paramètres, executeUpdate) ;
-    //    - récupérer l'id généré : keys.next(); passageId = keys.getLong(1) ;
-    //    - pour chaque observation, l'insérer avec ce passageId ;
-    //    - connexion.commit().
-    // 3. catch (SQLException) : connexion.rollback() puis lever une DataAccessException.
+    // - insérer le passage (prepareStatement(sqlPassage,
+    // Statement.RETURN_GENERATED_KEYS),
+    // positionner les paramètres, executeUpdate) ;
+    // - récupérer l'id généré : keys.next(); passageId = keys.getLong(1) ;
+    // - pour chaque observation, l'insérer avec ce passageId ;
+    // - connexion.commit().
+    // 3. catch (SQLException) : connexion.rollback() puis lever une
+    // DataAccessException.
     // 4. finally : refermer la connexion.
     //
-    // Astuce : ouvrez la connexion AVANT le try afin de pouvoir faire rollback dans le catch.
+    // Astuce : ouvrez la connexion AVANT le try afin de pouvoir faire rollback dans
+    // le catch.
+    Connection connexion = null;
+    try {
+      connexion = source.getConnection();
+      connexion.setAutoCommit(false);
+
+      PreparedStatement ps =
+          connexion.prepareStatement(sqlPassage, Statement.RETURN_GENERATED_KEYS);
+
+      ps.setString(1, numeroCarre);
+      ps.setString(2, codePoint);
+      ps.setInt(3, numeroPassage);
+      ps.setInt(4, annee);
+
+      ps.executeUpdate();
+
+      ResultSet keys = ps.getGeneratedKeys();
+
+      // Récupération de l'id généré :
+      keys.next();
+      passageId = keys.getLong(1);
+
+      // Parcours de la liste d'observation :
+      for (ObservationAImporter observation : observations) {
+        PreparedStatement psObservation = connexion.prepareStatement(sqlObservation);
+
+        psObservation.setLong(1, passageId);
+        psObservation.setDouble(2, observation.tempsDebut());
+        psObservation.setDouble(3, observation.tempsDebut());
+        psObservation.setInt(4, observation.frequenceMediane());
+        psObservation.setString(5, observation.codeTaxon());
+        psObservation.setDouble(6, observation.probabilite());
+
+        psObservation.executeUpdate();
+      }
+
+      connexion.commit();
+
+    } catch (SQLException e) {
+      if (connexion != null) annulerSilencieusement(connexion);
+      throw new DataAccessException("Impossible d'importer le passage", e);
+
+    } finally {
+      if (connexion != null) fermerSilencieusement(connexion);
+    }
 
     return passageId;
   }
